@@ -15,6 +15,9 @@ export const profileEndpoints = {
   GET_USER_ENROLLED_COURSES_API: BASE_URL + "/profile/getEnrolledCourses",
   GET_ALL_INSTRUCTOR_DASHBOARD_DETAILS_API:
     BASE_URL + "/profile/getInstructorDashboardDetails",
+  GET_PENDING_INSTRUCTORS_API: BASE_URL + "/profile/pending-instructors",
+  APPROVE_INSTRUCTOR_API: BASE_URL + "/profile/approve-instructor",
+  REJECT_INSTRUCTOR_API: BASE_URL + "/profile/reject-instructor",
 };
 
 // STUDENTS ENDPOINTS

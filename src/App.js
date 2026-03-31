@@ -10,6 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyOtp from "./pages/VerifyOtp";
 import About from "./pages/About";
 import ContactUs from "./pages/ContactUs";
+import PendingApproval from "./pages/PendingApproval";
 import LoadingBar from "react-top-loading-bar";
 import { setProgress } from "./slices/loadingBarSlice";
 import { useSelector } from "react-redux";
@@ -91,6 +92,7 @@ function App() {
         <Route path="/update-password/:id" element={<ResetPassword />} />
 
         <Route path="/verify-email" element={<VerifyOtp />} />
+        <Route path="/pending-approval" element={<PendingApproval />} />
 
         <Route path="/about" element={<About />} />
 

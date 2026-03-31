@@ -22,6 +22,7 @@ const SubsectionModal = ({
     const { token } = useSelector((state) => state.auth);
     const { course } = useSelector((state) => state.course);
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const dispatch = useDispatch();
     const { register, handleSubmit, formState: { errors }, setValue, getValues } = useForm();
@@ -45,26 +46,35 @@ const SubsectionModal = ({
     }
 
     const handelEditSubsection = async (data) => {
-        const currentValues = getValues();
-        const formData = new FormData();
-        formData.append("SubsectionId", modalData._id);
-        if (currentValues.lecture !== modalData.title) {
-            formData.append("title", data.lecture);
-        }
-        if (currentValues.lectureDesc !== modalData.description) {
-            formData.append("description", data.lectureDesc);
-        }
-        if (currentValues.lectureVideo !== modalData.videoUrl) {
-        formData.append("videoFile", data.lectureVideo);
-        }
+        setLoading(true);
+        try {
+            const currentValues = getValues();
+            const formData = new FormData();
+            formData.append("SubsectionId", modalData._id);
+            if (currentValues.lecture !== modalData.title) {
+                formData.append("title", data.lecture);
+            }
+            if (currentValues.lectureDesc !== modalData.description) {
+                formData.append("description", data.lectureDesc);
+            }
+            if (currentValues.lectureVideo !== modalData.videoUrl) {
+                formData.append("videoFile", data.lectureVideo);
+            }
 
-        formData.append("courseId", course._id);
-        // console.log("formdata", [...formData]);
-        const result = await updateSubSection(formData, token);
-        if (result) {
-            dispatch(setCourse(result));
+            formData.append("courseId", course._id);
+            // console.log("formdata", [...formData]);
+            const result = await updateSubSection(formData, token, (progress) => setUploadProgress(progress));
+            if (result) {
+                dispatch(setCourse(result));
+            }
+            setModalData(null);
+        } catch (error) {
+            console.error("Edit subsection failed", error);
+            toast.error("Failed to update lecture. Please try again.");
+        } finally {
+            setLoading(false);
+            setUploadProgress(0);
         }
-        setModalData(null);
     }
 
     const onSubmit = async (data) => {
@@ -81,21 +91,29 @@ const SubsectionModal = ({
             return;
         }
 
-        const formData = new FormData();
-        formData.append("sectionId", modalData);
-        formData.append("title", data.lecture);
-        formData.append("description", data.lectureDesc);
-        formData.append("videoFile", data.lectureVideo);
-        formData.append("courseId", course._id);
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append("sectionId", modalData);
+            formData.append("title", data.lecture);
+            formData.append("description", data.lectureDesc);
+            formData.append("videoFile", data.lectureVideo);
+            formData.append("courseId", course._id);
 
-        console.log("formdata", [...formData]);
-        const result = await createSubSection(formData, token);
-        console.log("result", result);
-        if (result) {
-
-            dispatch(setCourse(result));
+            console.log("formdata", [...formData]);
+            const result = await createSubSection(formData, token, (progress) => setUploadProgress(progress));
+            console.log("result", result);
+            if (result) {
+                dispatch(setCourse(result));
+            }
+            setModalData(null);
+        } catch (error) {
+            console.error("Create subsection failed", error);
+            toast.error("Failed to add lecture. Please try again.");
+        } finally {
+            setLoading(false);
+            setUploadProgress(0);
         }
-        setModalData(null);
     }
             
 
@@ -109,6 +127,14 @@ const SubsectionModal = ({
                 </button>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 px-8 py-10">
+                {uploadProgress > 0 && (
+                    <div className="space-y-2">
+                        <div className='relative h-2 w-full overflow-hidden rounded bg-richblack-400'>
+                            <div className='absolute left-0 top-0 h-full bg-yellow-50 transition-all duration-300' style={{ width: `${uploadProgress}%` }}></div>
+                        </div>
+                        <p className='text-xs text-richblack-200'>Upload progress: {uploadProgress}%</p>
+                    </div>
+                )}
                 <Upload 
                     name="lectureVideo"
                     label="lectureVideo"

@@ -82,9 +82,20 @@ const CourseDetails = () => {
 
 
 
-    if(!courseDetail) return <div className='flex justify-center items-center h-screen'>
+    if (courseDetail === null) return (
+      <div className='flex justify-center items-center h-screen text-center text-richblack-100'>
+        <div>
+          <p className='text-2xl font-semibold'>Course not available</p>
+          <p className='text-richblack-300 mt-2'>This course has been removed or the instructor is inactive.</p>
+        </div>
+      </div>
+    );
+
+    if (!courseDetail) return (
+      <div className='flex justify-center items-center h-screen'>
         <div className='custom-loader'></div>
-    </div>
+      </div>
+    );
 
   return (
     <div>
@@ -258,10 +269,10 @@ const CourseDetails = () => {
                     Author
                 </p>
                 <div className='flex items-center gap-4 py-4'>
-                    <img src={courseDetail?.instructor.image} alt="author img" className='w-[50px] h-[50px] rounded-full object-cover'/>
-                    <p className='text-xl font-semibold'>{courseDetail?.instructor?.firstName} {courseDetail?.instructor?.lastName}</p>
+                    <img src={courseDetail?.instructor?.image || 'https://via.placeholder.com/50'} alt="author img" className='w-[50px] h-[50px] rounded-full object-cover'/>
+                    <p className='text-xl font-semibold'>{courseDetail?.instructor?.firstName || 'Unknown'} {courseDetail?.instructor?.lastName || ''}</p>
                 </div>
-                <p className='text-richblack-50 text-sm mb-10'>{courseDetail?.instructor?.additionalDetails?.about}</p>
+                <p className='text-richblack-50 text-sm mb-10'>{courseDetail?.instructor?.additionalDetails?.about || 'No instructor details available.'}</p>
             </div>
 
             {/* Reviews */}

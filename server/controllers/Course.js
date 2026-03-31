@@ -140,11 +140,17 @@ exports.getAllCourses = async (req, res) => {
 				studentsEnrolled: true,
 			}
 		)
-			.populate("instructor")
+			.populate({
+				path: "instructor",
+				match: { active: true },
+				select: "firstName lastName image",
+			})
 			.exec();
+
+		const filteredCourses = allCourses.filter((course) => course.instructor !== null);
 		return res.status(200).json({
 			success: true,
-			data: allCourses,
+			data: filteredCourses,
 		});
 	} catch (error) {
 		console.log(error);
@@ -165,28 +171,26 @@ exports.getAllCourses = async (req, res) => {
 exports.getCourseDetails = async (req,res)=>{
 	try {
 		const {courseId}=req.body;
-	const courseDetails=await Course.find({_id: courseId}).populate({path:"instructor",
-	populate:{path:"additionalDetails"}})
-	.populate("category")
-	.populate({                    //only populate user name and image
-		path:"ratingAndReviews",
-		populate:{path:"user"
-		,select:"firstName lastName accountType image"}
-	})
-	.populate({path:"courseContent",populate:{path:"subSection"}})
-	.exec();
+	const courseDetails = await Course.find({_id: courseId})
+		.populate({path:"instructor", populate:{path:"additionalDetails"}})
+		.populate("category")
+		.populate({                    // only populate user name and image
+			path:"ratingAndReviews",
+			populate:{path:"user", select:"firstName lastName accountType image"}
+		})
+		.populate({path:"courseContent", populate:{path:"subSection"}})
+		.exec();
 
-	if(!courseDetails){
-		return res.status(404).json({
-            success:false,
-            message:"Course Not Found"
-        })
+	if (!courseDetails || courseDetails.length === 0) {
+		return res.status(404).json({ success:false, message:"Course Not Found" });
 	}
-	return res.status(200).json({
-        success:true,
-		message:"Course fetched successfully now",
-        data:courseDetails
-    });
+
+	const course = courseDetails[0];
+	if (!course.instructor || !course.instructor.active) {
+		return res.status(404).json({ success:false, message:"Course Not Found" });
+	}
+
+	return res.status(200).json({ success:true, message:"Course fetched successfully now", data:course });
 		
 	} catch (error) {
 		console.log(error);

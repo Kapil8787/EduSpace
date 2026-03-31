@@ -21,51 +21,68 @@ exports.signup = async (req, res) => {
 			confirmPassword,
 			accountType,
 			contactNumber,
+			instituteName,
+			linkedin,
+			experience,
 			otp,
 		} = req.body;
-		// Check if All Details are there or not
-		if (
-			!firstName ||
-			!lastName ||
-			!email ||
-			!password ||
-			!confirmPassword ||
-			!otp
-		) {
-			return res.status(403).send({
+
+		// Validate required fields
+		if (!firstName || !lastName || !email || !password || !confirmPassword || !otp || !accountType) {
+			return res.status(400).json({
 				success: false,
-				message: "All Fields are required",
+				message: "All required fields are required",
 			});
 		}
-		// Check if password and confirm password match
+
+		const normalizedAccountType = accountType.trim();
+		if (!["Student", "Instructor", "Admin"].includes(normalizedAccountType)) {
+			return res.status(400).json({
+				success: false,
+				message: "Invalid account type",
+			});
+		}
+
 		if (password !== confirmPassword) {
 			return res.status(400).json({
 				success: false,
-				message:
-					"Password and Confirm Password do not match. Please try again.",
+				message: "Password and Confirm Password do not match",
 			});
+		}
+
+		if (normalizedAccountType === "Instructor") {
+			if (!instituteName || !linkedin || experience === undefined || experience === null) {
+				return res.status(400).json({
+					success: false,
+					message: "Instructor profile requires instituteName, linkedin, and experience",
+				});
+			}
+			if (isNaN(Number(experience)) || Number(experience) < 0) {
+				return res.status(400).json({
+					success: false,
+					message: "Experience must be a non-negative number",
+				});
+			}
 		}
 
 		// Check if user already exists
 		const existingUser = await User.findOne({ email });
-		if (existingUser) {
+		if (existingUser && existingUser.active) {
 			return res.status(400).json({
 				success: false,
 				message: "User already exists. Please sign in to continue.",
 			});
 		}
 
+		// If previous instructor was rejected at admin level, remove stale/soft-deleted user to allow re-signup.
+		if (existingUser && !existingUser.active) {
+			await Profile.findByIdAndDelete(existingUser.additionalDetails);
+			await User.findByIdAndDelete(existingUser._id);
+		}
+
 		// Find the most recent OTP for the email
 		const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-		console.log(response);
-		if (response.length === 0) {
-			// OTP not found for the email
-			return res.status(400).json({
-				success: false,
-				message: "The OTP is not valid",
-			});
-		} else if (otp !== response[0].otp) {
-			// Invalid OTP
+		if (response.length === 0 || otp !== response[0].otp) {
 			return res.status(400).json({
 				success: false,
 				message: "The OTP is not valid",
@@ -75,28 +92,40 @@ exports.signup = async (req, res) => {
 		// Hash the password
 		const hashedPassword = await bcrypt.hash(password, 10);
 
-		// Create the user
-		let approved = "";
-		approved === "Instructor" ? (approved = false) : (approved = true);
+		const approved = normalizedAccountType === "Instructor" ? false : true;
 
 		// Create the Additional Profile For User
 		const profileDetails = await Profile.create({
 			gender: null,
 			dateOfBirth: null,
 			about: null,
-			contactNumber: null,
+			contactNumber: contactNumber || null,
+			instituteName: normalizedAccountType === "Instructor" ? instituteName : null,
+			linkedin: normalizedAccountType === "Instructor" ? linkedin : null,
+			experience: normalizedAccountType === "Instructor" ? Number(experience) : null,
 		});
+
 		const user = await User.create({
-			firstName,
-			lastName,
-			email,
-			contactNumber,
+			firstName: firstName.trim(),
+			lastName: lastName.trim(),
+			email: email.trim().toLowerCase(),
 			password: hashedPassword,
-			accountType: accountType,
-			approved: approved,
+			accountType: normalizedAccountType,
+			approved,
 			additionalDetails: profileDetails._id,
-			image: `https://api.dicebear.com/6.x/initials/svg?seed=${firstName} ${lastName}&backgroundColor=00897b,00acc1,039be5,1e88e5,3949ab,43a047,5e35b1,7cb342,8e24aa,c0ca33,d81b60,e53935,f4511e,fb8c00,fdd835,ffb300,ffd5dc,ffdfbf,c0aede,d1d4f9,b6e3f4&backgroundType=solid,gradientLinear&backgroundRotation=0,360,-350,-340,-330,-320&fontFamily=Arial&fontWeight=600`,
+			image: `https://api.dicebear.com/6.x/initials/svg?seed=${encodeURIComponent(
+				firstName + " " + lastName
+			)}&backgroundColor=00897b,00acc1,039be5,1e88e5,3949ab,43a047,5e35b1,7cb342,8e24aa,c0ca33,d81b60,e53935,f4511e,fb8c00,fdd835,ffb300,ffd5dc,ffdfbf,c0aede,d1d4f9,b6e3f4&backgroundType=solid,gradientLinear&backgroundRotation=0,360,-350,-340,-330,-320&fontFamily=Arial&fontWeight=600`,
 		});
+
+		if (normalizedAccountType === "Instructor") {
+			const instructorPendingTemplate = require("../mail/templates/instructorPendingTemplate");
+			await mailSender(
+				user.email,
+				"EduSpace - Instructor Application Pending Approval",
+				instructorPendingTemplate(user.firstName || user.email)
+			);
+		}
 
 		return res.status(200).json({
 			success: true,
@@ -136,6 +165,21 @@ exports.login = async (req, res) => {
 			return res.status(401).json({
 				success: false,
 				message: `User is not Registered with Us Please SignUp to Continue`,
+			});
+		}
+
+		if (user.active === false) {
+			return res.status(403).json({
+				success: false,
+				message: "Account is inactive",
+			});
+		}
+
+		// Block unapproved instructors (active users waiting admin approval)
+		if (user.accountType === "Instructor" && !user.approved) {
+			return res.status(403).json({
+				success: false,
+				message: "Account pending approval",
 			});
 		}
 
@@ -186,10 +230,15 @@ exports.sendotp = async (req, res) => {
 		// Check if user is already present
 		// Find user with provided email
 		const checkUserPresent = await User.findOne({ email });
-		// to be used in case of signup
+		// If user exists but is soft-inactive (rejected), clear stale account and allow re-OTP
+		if (checkUserPresent && checkUserPresent.active === false) {
+			await Profile.findByIdAndDelete(checkUserPresent.additionalDetails);
+			await User.findByIdAndDelete(checkUserPresent._id);
+		}
 
+		// to be used in case of signup
 		// If user found with provided email
-		if (checkUserPresent) {
+		if (checkUserPresent && checkUserPresent.active) {
 			// Return 401 Unauthorized status code with error message
 			return res.status(401).json({
 				success: false,

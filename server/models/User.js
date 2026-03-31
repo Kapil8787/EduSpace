@@ -15,10 +15,11 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 		},
-		// Define the email field with type String, required, and trimmed
+		// Define the email field with type String, required, unique, and trimmed
 		email: {
 			type: String,
 			required: true,
+			unique: true,
 			trim: true,
 		},
 
@@ -39,7 +40,9 @@ const userSchema = new mongoose.Schema(
 		},
 		approved: {
 			type: Boolean,
-			default: true,
+			default: function() {
+				return this.accountType !== "Instructor";
+			},
 		},
 		additionalDetails: {
 			type: mongoose.Schema.Types.ObjectId,

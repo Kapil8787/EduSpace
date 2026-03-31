@@ -23,16 +23,21 @@ const VerifyOtp = () => {
     const handleOnSubmit = (e) => {
 
         e.preventDefault();
-        const {email,accountType,confirmPassword,password,lastName,firstName}=signupData;
+        const { email, accountType, confirmPassword, password, lastName, firstName, instituteName, linkedin, experience } = signupData;
 
-        dispatch(signUp(accountType,
+        dispatch(signUp(
+            accountType,
             firstName,
             lastName,
             email,
             password,
             confirmPassword,
             otp,
-            navigate));
+            instituteName,
+            linkedin,
+            experience,
+            navigate
+        ));
     }
 
   return (

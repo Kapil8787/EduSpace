@@ -23,6 +23,9 @@ function SignupForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    instituteName: "",
+    linkedin: "",
+    experience: "",
   })
 
   const [showPassword, setShowPassword] = useState(false)
@@ -46,6 +49,18 @@ function SignupForm() {
       toast.error("Passwords Do Not Match")
       return
     }
+
+    if (accountType === ACCOUNT_TYPE.INSTRUCTOR) {
+      if (!formData.instituteName || !formData.linkedin || !formData.experience) {
+        toast.error("Please provide institute, linkedin, and experience for instructor signup")
+        return
+      }
+      if (Number(formData.experience) < 0) {
+        toast.error("Experience must be a non-negative number")
+        return
+      }
+    }
+
     const signupData = {
       ...formData,
       accountType,
@@ -64,6 +79,9 @@ function SignupForm() {
       email: "",
       password: "",
       confirmPassword: "",
+      instituteName: "",
+      linkedin: "",
+      experience: "",
     })
     setAccountType(ACCOUNT_TYPE.STUDENT)
   }
@@ -197,6 +215,55 @@ function SignupForm() {
             </span>
           </label>
         </div>
+
+        {accountType === ACCOUNT_TYPE.INSTRUCTOR && (
+          <div className="flex flex-col gap-y-4">
+            <label className="w-full">
+              <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
+                Institute Name <sup className="text-pink-200">*</sup>
+              </p>
+              <input
+                required
+                type="text"
+                name="instituteName"
+                value={formData.instituteName}
+                onChange={handleOnChange}
+                placeholder="Enter institute name"
+                className="w-full rounded-[0.5rem] bg-richblack-800 p-[12px] text-richblack-5"
+              />
+            </label>
+            <label className="w-full">
+              <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
+                LinkedIn URL <sup className="text-pink-200">*</sup>
+              </p>
+              <input
+                required
+                type="url"
+                name="linkedin"
+                value={formData.linkedin}
+                onChange={handleOnChange}
+                placeholder="Enter LinkedIn profile URL"
+                className="w-full rounded-[0.5rem] bg-richblack-800 p-[12px] text-richblack-5"
+              />
+            </label>
+            <label className="w-full">
+              <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
+                Experience (years) <sup className="text-pink-200">*</sup>
+              </p>
+              <input
+                required
+                type="number"
+                min="0"
+                name="experience"
+                value={formData.experience}
+                onChange={handleOnChange}
+                placeholder="Enter experience in years"
+                className="w-full rounded-[0.5rem] bg-richblack-800 p-[12px] text-richblack-5"
+              />
+            </label>
+          </div>
+        )}
+
         <button
           type="submit" onClick={()=>{dispatch(setProgress(60))}}
           className="mt-6 rounded-[8px] bg-yellow-50 py-[8px] px-[12px] font-medium text-richblack-900"

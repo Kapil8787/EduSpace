@@ -5,16 +5,15 @@ const User = require("../models/User");
 //auth
 exports.auth = async (req, res, next) => {
     try{
-        //extract token
-        const token = req.cookies.token 
-                        || req.body.token 
-                        || req.header("Authorisation").replace("Bearer ", "");
+        // extract token from cookie/body/header
+        const authorization = req.header("Authorization") || req.header("Authorisation") || "";
+        const bearerToken = authorization.startsWith("Bearer ") ? authorization.replace("Bearer ", "") : "";
+        const token = req.cookies?.token || req.body?.token || bearerToken;
 
-        //if token missing, then return response
         if(!token) {
             return res.status(401).json({
                 success:false,
-                message:'TOken is missing',
+                message:'Token is missing',
             });
         }
 
@@ -22,7 +21,31 @@ exports.auth = async (req, res, next) => {
         try{
             const decode =  jwt.verify(token, process.env.JWT_SECRET);
             console.log("decode= ",decode);
-            req.user = decode;
+
+            // Fetch current user status from DB to prevent stale tokens
+            const existingUser = await User.findById(decode.id);
+            if (!existingUser) {
+                return res.status(401).json({
+                    success:false,
+                    message:'Invalid token - user does not exist',
+                });
+            }
+
+            if (!existingUser.active) {
+                return res.status(403).json({
+                    success:false,
+                    message:'Account is inactive',
+                });
+            }
+
+            if (existingUser.accountType === "Instructor" && !existingUser.approved) {
+                return res.status(403).json({
+                    success:false,
+                    message:'Account pending approval',
+                });
+            }
+
+            req.user = { id: existingUser._id, accountType: existingUser.accountType };
         }
         catch(err) {
             //verification - issue

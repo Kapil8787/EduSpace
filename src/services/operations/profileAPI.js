@@ -185,3 +185,64 @@ export async function getInstructorDashboard(token,dispatch){
   // toast.dismiss(toastId)
   return result
 }
+
+//get pending instructors for admin
+export async function getPendingInstructors(token){
+  const toastId = toast.loading("Fetching pending instructors...");
+  try {
+    const response = await apiConnector("GET", profileEndpoints.GET_PENDING_INSTRUCTORS_API, null, {
+      Authorisation: `Bearer ${token}`,
+    })
+    if (!response.data.success) {
+      throw new Error(response.data.message)
+    }
+    return response.data.data;
+  } catch (error) {
+    console.log("GET_PENDING_INSTRUCTORS_API ERROR", error)
+    toast.error(error?.response?.data?.message || "Could not fetch pending instructors")
+    return [];
+  } finally {
+    toast.dismiss(toastId)
+  }
+}
+
+export async function approveInstructor(token, instructorId){
+  const toastId = toast.loading("Approving instructor...");
+  try {
+    const response = await apiConnector("POST", profileEndpoints.APPROVE_INSTRUCTOR_API, { instructorId }, {
+      Authorisation: `Bearer ${token}`,
+    })
+    if (!response.data.success) {
+      throw new Error(response.data.message)
+    }
+    toast.success("Instructor approved successfully")
+    return true;
+  } catch (error) {
+    console.log("APPROVE_INSTRUCTOR_API ERROR", error)
+    toast.error(error?.response?.data?.message || "Unable to approve instructor")
+    return false;
+  } finally {
+    toast.dismiss(toastId)
+  }
+}
+
+export async function rejectInstructor(token, instructorId, reason=""){
+  const toastId = toast.loading("Rejecting instructor...");
+  try {
+    const response = await apiConnector("POST", profileEndpoints.REJECT_INSTRUCTOR_API, { instructorId, reason }, {
+      Authorisation: `Bearer ${token}`,
+    })
+    if (!response.data.success) {
+      throw new Error(response.data.message)
+    }
+    toast.success("Instructor rejected successfully")
+    return true;
+  } catch (error) {
+    console.log("REJECT_INSTRUCTOR_API ERROR", error)
+    const errorMessage = error?.response?.data?.message || error?.message || "Unable to reject instructor"
+    toast.error(errorMessage)
+    return false;
+  } finally {
+    toast.dismiss(toastId)
+  }
+}

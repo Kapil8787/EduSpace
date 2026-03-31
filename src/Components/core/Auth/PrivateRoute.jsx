@@ -3,14 +3,22 @@ import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({children}) => {
+    const { token } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.profile);
 
-    const {token} = useSelector((state) => state.auth);
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
 
-    if(token !== null)
-        return children
-    else
-        return <Navigate to="/login" />
+    if (user?.accountType === "Instructor" && user?.approved === false) {
+        return <Navigate to="/pending-approval" replace />;
+    }
 
+    if (user?.active === false) {
+        return <Navigate to="/signup" replace />;
+    }
+
+    return children;
 }
 
 export default PrivateRoute

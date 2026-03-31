@@ -16,6 +16,18 @@ const profileSchema = new mongoose.Schema({
 		type: Number,
 		trim: true,
 	},
+	instituteName: {
+		type: String,
+		trim: true,
+	},
+	linkedin: {
+		type: String,
+		trim: true,
+	},
+	experience: {
+		type: Number,
+		min: 0,
+	},
 });
 
 // Export the Profile model

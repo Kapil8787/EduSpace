@@ -16,13 +16,17 @@ const RequirementField = ({name, label, register, errors, setValue, getValues}) 
         })
     },[])
 
-    useEffect(()=> {
-        setValue(name, requirementList);
-        if(editCourse) {
-            setRequirementList(course?.instructions);
-            setValue(name, course?.instructions);
+    useEffect(() => {
+        if (editCourse && course?.instructions && course?.instructions.length > 0) {
+            setRequirementList(course.instructions);
+            setValue(name, course.instructions);
         }
-    },[requirementList])
+    }, [editCourse, course?.instructions, name, setValue]);
+
+    useEffect(() => {
+        // Always sync requirement list to form field, including edit mode.
+        setValue(name, requirementList);
+    }, [requirementList, name, setValue]);
 
     const handleAddRequirement = () => {
         if(requirement) {

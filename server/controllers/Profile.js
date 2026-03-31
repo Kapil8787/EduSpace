@@ -1,7 +1,9 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
 const Course = require("../models/Course");
+const mailSender = require("../utils/mailSender");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
+const instructorRejectionTemplate = require("../mail/templates/instructorRejectionTemplate");
 // Method for updating a profile
 exports.updateProfile = async (req, res) => {
 	try {
@@ -54,8 +56,10 @@ exports.deleteAccount = async (req, res) => {
 				message: "User not found",
 			});
 		}
-		// Delete Assosiated Profile with the User
+		// Delete Associated Profile with the User
 		await Profile.findByIdAndDelete({ _id: user.additionalDetails });
+		// Delete this user's courses as well (instructor account deletion)
+		await Course.deleteMany({ instructor: id });
 		// TODO: Unenroll User From All the Enrolled Courses
 		// Now Delete User
 		await User.findByIdAndDelete({ _id: id });
@@ -87,6 +91,145 @@ exports.getAllUserDetails = async (req, res) => {
 		return res.status(500).json({
 			success: false,
 			message: error.message,
+		});
+	}
+};
+
+exports.getPendingInstructors = async (req, res) => {
+	try {
+		const pendingInstructors = await User.find({
+			accountType: "Instructor",
+			approved: false,
+			active: true,
+		})
+			.populate("additionalDetails")
+			.exec();
+
+		return res.status(200).json({
+			success: true,
+			message: "Pending Instructors fetched successfully",
+			data: pendingInstructors,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Unable to fetch pending instructors",
+			error: error.message,
+		});
+	}
+};
+
+exports.approveInstructor = async (req, res) => {
+	try {
+		const { instructorId } = req.body;
+		if (!instructorId) {
+			return res.status(400).json({
+				success: false,
+				message: "Instructor id is required",
+			});
+		}
+
+		const instructor = await User.findOne({
+			_id: instructorId,
+			accountType: "Instructor",
+			approved: false,
+			active: true,
+		}).populate("additionalDetails");
+
+		if (!instructor) {
+			return res.status(404).json({
+				success: false,
+				message: "Pending instructor not found",
+			});
+		}
+
+		instructor.approved = true;
+		await instructor.save();
+
+		// Send approval email
+		const instructorApprovalTemplate = require("../mail/templates/instructorApprovalTemplate");
+		await mailSender(
+			instructor.email,
+			"EduSpace - Instructor Approved",
+			instructorApprovalTemplate(instructor.firstName)
+		);
+
+		return res.status(200).json({
+			success: true,
+			message: "Instructor approved successfully",
+			data: instructor,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Unable to approve instructor",
+			error: error.message,
+		});
+	}
+};
+
+exports.rejectInstructor = async (req, res) => {
+	try {
+		const { instructorId, reason } = req.body;
+		if (!instructorId) {
+			return res.status(400).json({
+				success: false,
+				message: "Instructor id is required",
+			});
+		}
+
+		const instructor = await User.findOne({
+			_id: instructorId,
+			accountType: "Instructor",
+			approved: false,
+			active: true,
+		});
+
+		if (!instructor) {
+			// Already rejected or processed; treat as success for idempotency
+			return res.status(200).json({
+				success: true,
+				message: "Instructor is already rejected or not pending",
+			});
+		}
+
+		// Mark inactive and unapproved to prevent login prior to cleanup
+		instructor.active = false;
+		instructor.approved = false;
+		instructor.token = null;
+		await instructor.save();
+
+		// Delete the profile document if present
+		if (instructor.additionalDetails) {
+			await Profile.findByIdAndDelete(instructor.additionalDetails);
+		}
+
+		// Send rejection email (do not fail route if email sending fails)
+		try {
+			await mailSender(
+				instructor.email,
+				"EduSpace - Instructor Application Rejected",
+				instructorRejectionTemplate(instructor.firstName || instructor.email, reason)
+			);
+		} catch (emailError) {
+			console.error("Instructor rejection email failed:", emailError);
+		}
+
+		// Also delete course content by this instructor to avoid dangling homepage tiles
+		await Course.deleteMany({ instructor: instructorId });
+
+		// Finally remove user record
+		await User.findByIdAndDelete(instructorId);
+
+		return res.status(200).json({
+			success: true,
+			message: `Instructor rejected successfully${reason ? `: ${reason}` : ""}`,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "Unable to reject instructor",
+			error: error.message,
 		});
 	}
 };

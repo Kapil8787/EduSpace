@@ -1,7 +1,5 @@
 import { toast } from "react-hot-toast";
 import { setProgress } from "../../slices/loadingBarSlice";
-
-import { updateCompletedLectures } from "../../slices/viewCourseSlice";
 // import { setLoading } from "../../slices/profileSlice";
 import { apiConnector } from "../apiConnector";
 import { courseEndpoints } from "../apis";
@@ -46,27 +44,30 @@ export const getAllCourses = async () => {
 };
 
 export const fetchCourseDetails = async (courseId, dispatch) => {
-  // const toastId = toast.loading("Loading...")
   dispatch(setProgress(50));
   let result = null;
   try {
-    const response = await apiConnector("POST", COURSE_DETAILS_API, {
-      courseId,
-    });
+    const response = await apiConnector("POST", COURSE_DETAILS_API, { courseId });
     console.log("COURSE_DETAILS_API API RESPONSE............", response.data);
 
-    if (!response.data.success) {
-      throw new Error(response.data.message);
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || "Course not found");
     }
-    result = response.data.data[0];
+
+    result = response.data.data;
+    if (Array.isArray(result)) {
+      result = result[0] || null;
+    }
+
+    if (!result || !result.instructor || !result.instructor.active) {
+      throw new Error("Course not found or instructor inactive");
+    }
   } catch (error) {
     console.log("COURSE_DETAILS_API API ERROR............", error);
-    result = error.response.data;
-    // toast.error(error.response.data.message);
+    result = null;
   }
-  // toast.dismiss(toastId)
+
   dispatch(setProgress(100));
-  //   dispatch(setLoading(false));
   return result;
 };
 
@@ -88,14 +89,21 @@ export const fetchCourseCategories = async () => {
 };
 
 // add the course details
-export const addCourseDetails = async (data, token) => {
+export const addCourseDetails = async (data, token, onUploadProgress) => {
   let result = null;
   const toastId = toast.loading("Loading...");
   try {
-    const response = await apiConnector("POST", CREATE_COURSE_API, data, {
-      "Content-Type": "multipart/form-data",
-      Authorisation: `Bearer ${token}`,
-    });
+    const response = await apiConnector(
+      "POST",
+      CREATE_COURSE_API,
+      data,
+      {
+        "Content-Type": "multipart/form-data",
+        Authorisation: `Bearer ${token}`,
+      },
+      null,
+      onUploadProgress
+    );
     console.log("CREATE COURSE API RESPONSE............", response);
     if (!response?.data?.success) {
       throw new Error("Could Not Add Course Details");
@@ -104,21 +112,28 @@ export const addCourseDetails = async (data, token) => {
     result = response?.data?.data;
   } catch (error) {
     console.log("CREATE COURSE API ERROR............", error);
-    toast.error(error.response.data.message);
+    toast.error(error?.response?.data?.message || error.message);
   }
   toast.dismiss(toastId);
   return result;
 };
 
 // edit the course details
-export const editCourseDetails = async (data, token) => {
+export const editCourseDetails = async (data, token, onUploadProgress) => {
   let result = null;
   const toastId = toast.loading("Loading...");
   try {
-    const response = await apiConnector("POST", EDIT_COURSE_API, data, {
-      "Content-Type": "multipart/form-data",
-      Authorisation: `Bearer ${token}`,
-    });
+    const response = await apiConnector(
+      "POST",
+      EDIT_COURSE_API,
+      data,
+      {
+        "Content-Type": "multipart/form-data",
+        Authorisation: `Bearer ${token}`,
+      },
+      null,
+      onUploadProgress
+    );
     console.log("EDIT COURSE API RESPONSE............", response);
     if (!response?.data?.success) {
       throw new Error("Could Not Update Course Details");
@@ -127,7 +142,7 @@ export const editCourseDetails = async (data, token) => {
     result = response?.data?.data;
   } catch (error) {
     console.log("EDIT COURSE API ERROR............", error);
-    toast.error(error.response.data.message);
+    toast.error(error?.response?.data?.message || error.message);
   }
   toast.dismiss(toastId);
   return result;
@@ -157,13 +172,18 @@ export const createSection = async (data, token) => {
 };
 
 // create a subsection
-export const createSubSection = async (data, token) => {
+export const createSubSection = async (data, token, onUploadProgress) => {
   let result = null;
   const toastId = toast.loading("Uploading...");
   try {
-    const response = await apiConnector("POST", CREATE_SUBSECTION_API, data, {
-      Authorisation: `Bearer ${token}`,
-    });
+    const response = await apiConnector(
+      "POST",
+      CREATE_SUBSECTION_API,
+      data,
+      { Authorisation: `Bearer ${token}` },
+      null,
+      onUploadProgress
+    );
     console.log("CREATE SUB-SECTION API RESPONSE............", response);
     if (!response?.data?.success) {
       throw new Error("Could Not Add Lecture");
@@ -172,7 +192,7 @@ export const createSubSection = async (data, token) => {
     result = response?.data?.data;
   } catch (error) {
     console.log("CREATE SUB-SECTION API ERROR............", error);
-    toast.error(error.message);
+    toast.error(error?.response?.data?.message || error.message);
   }
   toast.dismiss(toastId);
   return result;
@@ -202,13 +222,18 @@ export const updateSection = async (data, token) => {
 };
 
 // update a subsection
-export const updateSubSection = async (data, token) => {
+export const updateSubSection = async (data, token, onUploadProgress) => {
   let result = null;
   const toastId = toast.loading("Loading...");
   try {
-    const response = await apiConnector("POST", UPDATE_SUBSECTION_API, data, {
-      Authorisation: `Bearer ${token}`,
-    });
+    const response = await apiConnector(
+      "POST",
+      UPDATE_SUBSECTION_API,
+      data,
+      { Authorisation: `Bearer ${token}` },
+      null,
+      onUploadProgress
+    );
     console.log("UPDATE SUB-SECTION API RESPONSE............", response);
     if (!response?.data?.success) {
       throw new Error("Could Not Update Lecture");
@@ -217,7 +242,7 @@ export const updateSubSection = async (data, token) => {
     result = response?.data?.data;
   } catch (error) {
     console.log("UPDATE SUB-SECTION API ERROR............", error);
-    toast.error(error.message);
+    toast.error(error?.response?.data?.message || error.message);
   }
   toast.dismiss(toastId);
   return result;

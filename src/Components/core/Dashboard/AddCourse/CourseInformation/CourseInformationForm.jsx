@@ -26,6 +26,7 @@ const CourseInformationForm = () => {
     const {token} = useSelector((state)=>state.auth);
     const {course, editCourse} = useSelector((state)=>state.course);
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [courseCategories, setCourseCategories] = useState([]);
 
     useEffect(()=> {
@@ -54,63 +55,79 @@ const CourseInformationForm = () => {
 
     const isFormUpdated = () => {
         const currentValues = getValues();
-        if(currentValues.courseTitle !== course.courseName ||
-            currentValues.courseShortDesc !== course.courseDescription ||
-            currentValues.coursePrice !== course.price ||
-            currentValues.courseTitle !== course.courseName ||
-            currentValues.courseTags.toString() !== course.tag.toString() ||
-            currentValues.courseBenefits !== course.whatYouWillLearn ||
-            currentValues.courseCategory._id !== course.category._id ||
-            currentValues.courseImage !== course.thumbnail ||
-            currentValues.courseRequirements.toString() !== course.instructions.toString() )
+
+        const compareString = (a, b) => (a || "").toString().trim() !== (b || "").toString().trim();
+        const compareArray = (a, b) => {
+            const aJson = JSON.stringify(a || []);
+            const bJson = JSON.stringify(b || []);
+            return aJson !== bJson;
+        };
+
+        const categoryId = currentValues.courseCategory?._id || currentValues.courseCategory;
+        const currentCategoryId = course.category?._id || course.category;
+
+        if (
+            compareString(currentValues.courseTitle, course.courseName) ||
+            compareString(currentValues.courseShortDesc, course.courseDescription) ||
+            compareString(currentValues.coursePrice, course.price) ||
+            compareArray(currentValues.courseTags, course.tag) ||
+            compareString(currentValues.courseBenefits, course.whatYouWillLearn) ||
+            compareString(categoryId, currentCategoryId) ||
+            compareString(currentValues.courseImage, course.thumbnail) ||
+            compareArray(currentValues.courseRequirements, course.instructions)
+        ) {
             return true;
-        else
-            return false;
+        }
+
+        return false;
     }
 
     //handles next button click 
     const onSubmit = async(data) => {
+        let formData;
+        let result;
 
         if(editCourse) {
             if(isFormUpdated()) {
                 const currentValues = getValues();
-            const formData = new FormData();
+                formData = new FormData();
 
-            formData.append("courseId", course._id);
-            if(currentValues.courseTitle !== course.courseName) {
-                formData.append("courseName", data.courseTitle);
-            }
+                formData.append("courseId", course._id);
+                if(currentValues.courseTitle !== course.courseName) {
+                    formData.append("courseName", data.courseTitle);
+                }
 
-            if(currentValues.courseShortDesc !== course.courseDescription) {
-                formData.append("courseDescription", data.courseShortDesc);
-            }
+                if(currentValues.courseShortDesc !== course.courseDescription) {
+                    formData.append("courseDescription", data.courseShortDesc);
+                }
 
-            if(currentValues.coursePrice !== course.price) {
-                formData.append("price", data.coursePrice);
-            }
+                if(currentValues.coursePrice !== course.price) {
+                    formData.append("price", data.coursePrice);
+                }
 
-            if(currentValues.courseBenefits !== course.whatYouWillLearn) {
-                formData.append("whatYouWillLearn", data.courseBenefits);
-            }
+                if(currentValues.courseBenefits !== course.whatYouWillLearn) {
+                    formData.append("whatYouWillLearn", data.courseBenefits);
+                }
 
-            if(currentValues.courseCategory._id !== course.category._id) {
-                formData.append("category", data.courseCategory);
-            }
+                if(currentValues.courseCategory._id !== course.category._id) {
+                    formData.append("category", data.courseCategory);
+                }
 
-            if(currentValues.courseRequirements.toString() !== course.instructions.toString()) {
-                formData.append("instructions", JSON.stringify(data.courseRequirements));
-            }
+                if(currentValues.courseRequirements.toString() !== course.instructions.toString()) {
+                    formData.append("instructions", JSON.stringify(data.courseRequirements));
+                }
 
-            setLoading(true);
-            const result = await editCourseDetails(formData, token);
-            setLoading(false);
-            if(result) {
-                dispatch(setEditCourse(false));
-                dispatch(setStep(2));
-                dispatch(setCourse(result));
-            }
-            } 
-            else {
+                setUploadProgress(0);
+                setLoading(true);
+                result = await editCourseDetails(formData, token, (progress) => setUploadProgress(progress));
+                setLoading(false);
+                if(result) {
+                    setUploadProgress(0);
+                    dispatch(setEditCourse(false));
+                    dispatch(setStep(2));
+                    dispatch(setCourse(result));
+                }
+            } else {
                 toast.error("NO Changes made so far");
             }
             console.log("PRINTING FORMDATA", formData);
@@ -120,7 +137,7 @@ const CourseInformationForm = () => {
         }
 
         //create a new course
-        const formData = new FormData();
+        formData = new FormData();
         formData.append("courseName", data.courseTitle);
         formData.append("courseDescription", data.courseShortDesc);
         formData.append("price", data.coursePrice);
@@ -131,11 +148,13 @@ const CourseInformationForm = () => {
         formData.append("tag", JSON.stringify(data.courseTags));
         formData.append("thumbnailImage", data.courseImage);
 
+        setUploadProgress(0);
         setLoading(true);
         console.log("BEFORE add course API call");
         console.log("PRINTING FORMDATA", formData);
-        const result = await addCourseDetails(formData,token);
+        result = await addCourseDetails(formData, token, (progress) => setUploadProgress(progress));
         if(result) {
+            setUploadProgress(0);
             dispatch(setStep(2));
             dispatch(setCourse(result));
         }
@@ -151,6 +170,16 @@ const CourseInformationForm = () => {
     onSubmit={handleSubmit(onSubmit)}
     className='space-y-8 rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6'
     >
+        {uploadProgress > 0 && (
+            <div className='relative h-2 w-full overflow-hidden rounded bg-richblack-400'>
+                <div className='absolute left-0 top-0 h-full bg-yellow-50 transition-all duration-300' style={{ width: `${uploadProgress}%` }}></div>
+            </div>
+        )
+        }
+        {uploadProgress > 0 && (
+            <p className='text-xs text-richblack-200'>Upload progress: {uploadProgress}%</p>
+        )}
+
         <div className='flex flex-col space-y-2'>
             <label className='text-sm text-richblack-5'  htmlFor='courseTitle'>Course Title<sup className='text-pink-200'>*</sup></label>
             <input

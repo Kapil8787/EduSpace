@@ -53,6 +53,9 @@ export function signUp(
   password,
   confirmPassword,
   otp,
+  instituteName,
+  linkedin,
+  experience,
   navigate
 ) {
   return async (dispatch) => {
@@ -67,6 +70,9 @@ export function signUp(
         password,
         confirmPassword,
         otp,
+        instituteName,
+        linkedin,
+        experience,
       })
 
       console.log("SIGNUP API RESPONSE............", response)
@@ -116,7 +122,21 @@ export function login(email, password, navigate) {
     } catch (error) {
       dispatch(setProgress(100))
       console.log("LOGIN API ERROR............", error)
-      toast.error(error.response.data.message)
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message || "Login Failed";
+      toast.error(message)
+
+      // clear stale auth state on any login fail
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      dispatch(setToken(null));
+
+      if (status === 403 && message === "Account pending approval") {
+        navigate("/pending-approval");
+      } else {
+        // rejected/inactive/unregistered go to signup
+        navigate("/signup");
+      }
     }
     dispatch(setLoading(false))
     toast.dismiss(toastId)
