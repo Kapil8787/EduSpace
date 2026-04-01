@@ -12,6 +12,7 @@ import ExploreMore from '../Components/core/HomePage/ExploreMore';
 import { useDispatch } from 'react-redux';
 import { setProgress } from "../slices/loadingBarSlice"
 import { getCatalogaPageData } from '../services/operations/pageAndComponentData';
+import { fetchCourseCategories } from '../services/operations/courseDetailsAPI';
 import CourseSlider from '../Components/core/Catalog/CourseSlider';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -25,7 +26,6 @@ const [CatalogPageData, setCatalogPageData] = useState(null);
 const [categoryID, setCategoryID] = useState(null);
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState(null);
-const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 // 🔹 Fetch Category
 useEffect(() => {
@@ -35,16 +35,14 @@ useEffect(() => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${BASE_URL}/course/showAllCategories`);
-      const data = await res.json();
+      const categories = await fetchCourseCategories();
+      if (!Array.isArray(categories) || categories.length === 0) {
+        throw new Error("No categories found");
+      }
 
-      if (!data?.data) throw new Error("Invalid API response");
-
-      const category = data.data.find(
-        (cat) => cat.name === "Web Development"
-      );
-
-      if (!category) throw new Error("Category not found");
+      const category =
+        categories.find((cat) => cat?.name?.toLowerCase() === "web development") ||
+        categories[0];
 
       if (isMounted) {
         setCategoryID(category._id);
@@ -62,7 +60,7 @@ useEffect(() => {
   return () => {
     isMounted = false;
   };
-}, [BASE_URL]);
+}, []);
 
 // 🔹 Fetch Catalog Data
 useEffect(() => {
