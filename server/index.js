@@ -23,6 +23,9 @@ database.connect();
 app.use(express.json());
 app.use(cookieParser());
 
+const normalizeOrigin = (originValue) =>
+  String(originValue).trim().replace(/\/+$/, "").toLowerCase();
+
 const parseAllowedOrigins = (rawOrigins) => {
   if (!rawOrigins) {
     return null;
@@ -54,6 +57,40 @@ const parseAllowedOrigins = (rawOrigins) => {
 };
 
 const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGIN);
+const wildcardRegexCache = new Map();
+
+const getWildcardRegex = (pattern) => {
+  const cachedRegex = wildcardRegexCache.get(pattern);
+  if (cachedRegex) {
+    return cachedRegex;
+  }
+
+  const escapedPattern = pattern
+    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, ".*");
+  const regex = new RegExp(`^${escapedPattern}$`, "i");
+  wildcardRegexCache.set(pattern, regex);
+
+  return regex;
+};
+
+const isOriginAllowed = (requestOrigin, originRules) => {
+  const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+
+  return originRules.some((rule) => {
+    const normalizedRule = normalizeOrigin(rule);
+
+    if (!normalizedRule || normalizedRule === "*") {
+      return true;
+    }
+
+    if (!normalizedRule.includes("*")) {
+      return normalizedRule === normalizedRequestOrigin;
+    }
+
+    return getWildcardRegex(normalizedRule).test(normalizedRequestOrigin);
+  });
+};
 
 app.use(
   cors({
@@ -62,11 +99,12 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin, allowedOrigins)) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      return callback(null, false);
     },
     credentials: true,
     maxAge: 14400,
