@@ -67,7 +67,7 @@ exports.courseEnrollmentEmail = (courseName, name) => {
     
     <body>
         <div class="container">
-            <a href="http://localhost:3000"><img 
+            <a href="https://edu-space-ten.vercel.app"><img 
     class="logo" 
     src="https://res.cloudinary.com/dpwtuidm5/image/upload/rzp_pdct3x.png" 
     alt="EduSpace Logo"
@@ -79,7 +79,7 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                     are excited to have you as a participant!</p>
                 <p>Please log in to your learning dashboard to access the course materials and start your learning journey.
                 </p>
-                <a class="cta" href="http://localhost:3000/dashboard">
+                <a class="cta" href="https://edu-space-ten.vercel.app/dashboard">
   Go to Dashboard
 </a>
             </div>

@@ -66,7 +66,7 @@ const otpTemplate = (otp) => {
 	
 	<body>
 		<div class="container">
-			<a href="http://localhost:3000"><img 
+			<a href="https://edu-space-ten.vercel.app"><img 
     class="logo" 
     src="https://res.cloudinary.com/dpwtuidm5/image/upload/rzp_pdct3x.png" 
     alt="EduSpace Logo"
