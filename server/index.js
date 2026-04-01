@@ -23,13 +23,51 @@ database.connect();
 app.use(express.json());
 app.use(cookieParser());
 
-const whitelist = process.env.CORS_ORIGIN
-  ? JSON.parse(process.env.CORS_ORIGIN)
-  : ["*"];
+const parseAllowedOrigins = (rawOrigins) => {
+  if (!rawOrigins) {
+    return null;
+  }
+
+  const trimmedOrigins = rawOrigins.trim();
+  if (!trimmedOrigins || trimmedOrigins === "*") {
+    return null;
+  }
+
+  try {
+    const parsedOrigins = JSON.parse(trimmedOrigins);
+
+    if (Array.isArray(parsedOrigins)) {
+      return parsedOrigins.map((origin) => String(origin).trim()).filter(Boolean);
+    }
+
+    if (typeof parsedOrigins === "string") {
+      return [parsedOrigins.trim()].filter(Boolean);
+    }
+  } catch (error) {
+    return trimmedOrigins
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
+  return null;
+};
+
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGIN);
 
 app.use(
   cors({
-    origin: whitelist,
+    origin: (origin, callback) => {
+      if (!origin || !allowedOrigins) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     maxAge: 14400,
   })
