@@ -246,19 +246,22 @@ exports.sendotp = async (req, res) => {
 			});
 		}
 
-		var otp = otpGenerator.generate(6, {
+				var otp = otpGenerator.generate(6, {
 			upperCaseAlphabets: false,
 			lowerCaseAlphabets: false,
 			specialChars: false,
 		});
-		const result = await OTP.findOne({ otp: otp });
+		let result = await OTP.findOne({ otp: otp });
 		console.log("Result is Generate OTP Func");
 		console.log("OTP", otp);
 		console.log("Result", result);
 		while (result) {
 			otp = otpGenerator.generate(6, {
 				upperCaseAlphabets: false,
+				lowerCaseAlphabets: false,
+				specialChars: false,
 			});
+			result = await OTP.findOne({ otp: otp }); // ✅ FIX: Re-check the new OTP
 		}
 		const otpPayload = { email, otp };
 		const otpBody = await OTP.create(otpPayload);

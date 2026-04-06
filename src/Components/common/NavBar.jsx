@@ -22,7 +22,7 @@ const NavBar = ({ setProgress }) => {
     const { user } = useSelector(state => state.profile);
     const { totalItems } = useSelector(state => state.cart);
     const [prevScrollPos, setPrevScrollPos] = useState(0);
-    const [visible, setVisible] = useState(true)
+    const [, setVisible] = useState(true)
     const [searchValue, setSearchValue] = useState("")
     const navigate = useNavigate();
 

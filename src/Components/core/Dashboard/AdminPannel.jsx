@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { createCategory } from "../../../services/operations/courseDetailsAPI";
 import {
@@ -12,15 +12,15 @@ const AdminPannel = () => {
   const [category, setCategory] = useState({ name: "", description: "" });
   const [pending, setPending] = useState([]);
 
-  const loadPendingInstructors = async () => {
+  const loadPendingInstructors = useCallback(async () => {
     if (!token) return;
     const instructors = await getPendingInstructors(token);
     setPending(instructors || []);
-  };
+  }, [token]);
 
   useEffect(() => {
     loadPendingInstructors();
-  }, [token]);
+  }, [loadPendingInstructors]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

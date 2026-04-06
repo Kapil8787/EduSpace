@@ -19,7 +19,7 @@ import {
 const CourseBuilderForm = () => {
   const { token } = useSelector((state) => state.auth);
   const [editSectionName, setEditSectionName] = React.useState(false);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { course } = useSelector((state) => state.course);
 
@@ -41,7 +41,6 @@ const CourseBuilderForm = () => {
     register,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm();
 

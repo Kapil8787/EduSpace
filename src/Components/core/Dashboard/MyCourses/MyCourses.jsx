@@ -1,5 +1,5 @@
 import React from 'react'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { fetchInstructorCourses } from '../../../../services/operations/courseDetailsAPI'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -9,16 +9,16 @@ const MyCourses = () => {
     const navigate = useNavigate();
     const {token} = useSelector((state) => state.auth);
     const [courses, setCourses] = React.useState(null);    
-    const fetchedCourses = async ()=>{ 
+    const fetchedCourses = useCallback(async ()=>{ 
         const result = await fetchInstructorCourses(token);
         if(result){
             setCourses(result);
         }
-        }
+        }, [token])
 
     useEffect(() => {
         fetchedCourses();
-    },[])
+    },[fetchedCourses])
   return (
     <div className='mx-auto w-11/12 max-w-[1000px] py-10'>
         <div>

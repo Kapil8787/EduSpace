@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
 
 
 const RequirementField = ({name, label, register, errors, setValue, getValues}) => {
@@ -14,7 +13,7 @@ const RequirementField = ({name, label, register, errors, setValue, getValues}) 
             required:true,
             // validate: (value) => value.length > 0
         })
-    },[])
+    },[name, register])
 
     useEffect(() => {
         if (editCourse && course?.instructions && course?.instructions.length > 0) {

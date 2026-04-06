@@ -1,6 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router'
 import { useState } from 'react';
+import { useCallback } from 'react';
 import { categories } from '../services/apis';
 import { apiConnector } from '../services/apiConnector';
 import { useEffect } from 'react';
@@ -19,7 +20,7 @@ const Catalog = () => {
   const dispatch = useDispatch();
 
 
-  const fetchSublinks=  async ()=>{
+  const fetchSublinks = useCallback(async ()=>{
     try {
         const result = await apiConnector("GET",categories.CATEGORIES_API);
         const category_id= result.data.data.filter((item)=>item.name=== Catalog.catalog)[0]._id;
@@ -31,10 +32,10 @@ const Catalog = () => {
         console.log("could not fetch sublinks");
         console.log(error);
     }
-}
+}, [Catalog.catalog])
 useEffect(() => {
     fetchSublinks();
-}, [Catalog])
+}, [fetchSublinks])
 
 useEffect(() => {
     const fetchCatalogPageData = async () => {
@@ -47,7 +48,7 @@ useEffect(() => {
     if (categoryID) {
         fetchCatalogPageData();
     }
-}, [categoryID])
+}, [categoryID, dispatch])
 
 
   return (

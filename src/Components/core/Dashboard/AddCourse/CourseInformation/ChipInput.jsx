@@ -17,10 +17,11 @@ const ChipInput = ({name, label, register, errors, setValue}) => {
    
         });
         if(editCourse ) {
-            settags(JSON.parse(course?.tag));
-            setValue(name, JSON.parse(course?.tag));
+            const parsedTags = Array.isArray(course?.tag) ? course?.tag : JSON.parse(course?.tag || "[]");
+            settags(parsedTags);
+            setValue(name, parsedTags);
         }
-    },[])
+    },[course?.tag, editCourse, name, register, setValue])
 
   return (
     <div>

@@ -24,7 +24,7 @@ const ReviewModal = ({setReviewModal}) => {
     setValue("userExperience","");
     setValue("userRating",undefined);
   }
-  ,[])
+  ,[setValue])
 
   const ratingChanged = (newRating) => {
     setValue("userRating",newRating);

@@ -1,5 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
+import { useCallback } from 'react'
 import { useEffect } from 'react'
 import { searchCourses } from '../services/operations/courseDetailsAPI'
 import { useState } from 'react'
@@ -14,17 +15,17 @@ const SearchCourse = () => {
     const [loading, setLoading] = useState(false);
     const distpatch= useDispatch();
     const {searchQuery}=useParams();
-    const fetchSearchResults= async ()=>{
+    const fetchSearchResults = useCallback(async ()=>{
         setLoading(true);
         const res = await searchCourses(searchQuery,distpatch);
         setSearchResults(res);
         setLoading(false);
         console.log(res);
-    }
+    }, [distpatch, searchQuery])
 
     useEffect(() => {
         fetchSearchResults();
-    }, [searchQuery])
+    }, [fetchSearchResults])
 
 
 

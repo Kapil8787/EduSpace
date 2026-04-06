@@ -16,7 +16,7 @@ const VerifyOtp = () => {
 
         if(!signupData){
             navigate('/signup');
-        }},[])
+        }},[navigate, signupData])
 
 
 
@@ -41,7 +41,7 @@ const VerifyOtp = () => {
     }
 
   return (
-    loading?(<div className=" h-[100vh] flex justify-center items-center"><div class="custom-loader"></div></div>):(
+    loading?(<div className=" h-[100vh] flex justify-center items-center"><div className="custom-loader"></div></div>):(
     <div>
        <div className='min-h-[calc(100vh-3.5rem)] grid place-items-center'>
         <div className='max-w-[500px] p-4 lg:p-8'>

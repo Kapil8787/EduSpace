@@ -7,7 +7,6 @@ import SidebarLink from './SidebarLink'
 import { useNavigate } from 'react-router-dom'
 import {VscSignOut} from "react-icons/vsc"
 import ConfirmationModal from '../../common/ConfirmationModal'
-import { setCourse, setStep } from '../../../slices/courseSlice'
 
 const Sidebar = () => {
 

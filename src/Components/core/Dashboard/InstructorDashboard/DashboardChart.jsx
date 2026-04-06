@@ -1,6 +1,5 @@
 import React from 'react'
-import { Pie,Doughnut } from 'react-chartjs-2';
-import { useState } from 'react';
+import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 const DashboardChart = ({details,currentChart}) => {

@@ -33,7 +33,14 @@ const SubsectionModal = ({
             setValue("lectureVideo", modalData.videoUrl);
             // console.log("useeffect modalData", modalData);
         }
-    },[view,edit]);
+    },[
+        view,
+        edit,
+        modalData?.description,
+        modalData?.title,
+        modalData?.videoUrl,
+        setValue,
+    ]);
 
     const isFormUpdated = () => {
         const currentValues = getValues();

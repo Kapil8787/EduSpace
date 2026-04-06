@@ -10,11 +10,10 @@ import {MdOutlineKeyboardArrowDown} from 'react-icons/md'
 import {FaAngleDoubleRight} from 'react-icons/fa'
 
 const VideoDetailsSidebar = ({setReviewModal}) => {
-  const [activeStatus, setActiveStatus] = useState("");
   const [videoActive, setVideoActive] = useState("");
   const {courseId,sectionId,subsectionId} = useParams();
   // console.log("sectionId", sectionId, "SubSectionId", subsectionId);
-  const {courseSectionData, courseEntireData, completedLectures, totalNoOfLectures} = useSelector(state => state.viewCourse);
+  const {courseSectionData, completedLectures, totalNoOfLectures} = useSelector(state => state.viewCourse);
   // console.log(courseSectionData);
   const navigate = useNavigate();
   const[showSidebar, setShowSidebar] = useState(false);
@@ -28,7 +27,6 @@ const VideoDetailsSidebar = ({setReviewModal}) => {
       // console.log("currentSubSectionIndex", currentSubSectionIndex);
       if(currentSectionIndex === -1 || currentSubSectionIndex === -1) return;
       const activesubsectionId = courseSectionData[currentSectionIndex].subSection[currentSubSectionIndex]._id;
-      setActiveStatus(courseSectionData[currentSectionIndex]._id);
       setVideoActive(activesubsectionId);
       // console.log("activeSubsectionId", activesubsectionId);
       // console.log("activeSectionId", courseSectionData[currentSectionIndex]._id);
