@@ -40,9 +40,6 @@ const NestedView = ({handelChangeEditSectionName}) => {
             setConfirmationModal(null);
         }
     }
-
-    const handelChangeEditSubSectionName = (subSectionId,subSection) => {
-    }
     // console.log(course.courseContent);
   return (
     <div>
@@ -81,7 +78,7 @@ const NestedView = ({handelChangeEditSectionName}) => {
                         <div className='px-6 pb-4'>
                             {
                                 section.subSection.map((subSection) => (
-                                    <div onClick={(e) => {if(e.currentTarget != e.target ) return;setviewSubSection(subSection);}} key={subSection._id} className='flex cursor-pointer items-center justify-between gap-x-3 border-b-2 border-b-richblack-600 py-2 z-0'>
+                                    <div onClick={(e) => {if(e.currentTarget !== e.target ) return;setviewSubSection(subSection);}} key={subSection._id} className='flex cursor-pointer items-center justify-between gap-x-3 border-b-2 border-b-richblack-600 py-2 z-0'>
                                         <div className='flex items-center gap-x-3'>
                                         <RxDropdownMenu size={25} className=' text-richblack-50'/>
                                         <p className='font-semibold text-richblack-50' >{subSection.title}</p>

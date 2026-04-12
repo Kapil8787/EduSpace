@@ -15,8 +15,6 @@ const RenderTotalAmount = () => {
 
 
     const handleBuyCourse = () => {
-        const courses = cart.map((course) => course._id);
-        // console.log("Bought these course:", courses);
         if(token){
           const courses = cart.map((course) => course._id);
           buyCourse(token,courses,user,navigate,dispatch);

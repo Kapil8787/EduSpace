@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux';
 import { addCourseDetails, editCourseDetails, fetchCourseCategories } from '.././../../../../services/operations/courseDetailsAPI';
 import { HiOutlineCurrencyRupee } from 'react-icons/hi';
-import { BiUpload } from 'react-icons/bi';
 import RequirementField from './RequirementField';
 import { setStep, setCourse, setEditCourse} from '../../../../../slices/courseSlice';
 import IconBtn from '../../../../common/IconBtn';
@@ -39,7 +38,11 @@ const CourseInformationForm = () => {
             setLoading(false);
         }
 
-        if(editCourse) {
+        getCategories();
+    },[])
+
+    useEffect(() => {
+        if(editCourse && course) {
             setValue("courseTitle", course.courseName);
             setValue("courseShortDesc", course.courseDescription);
             setValue("coursePrice", course.price);
@@ -49,9 +52,7 @@ const CourseInformationForm = () => {
             setValue("courseRequirements", course.instructions);
             setValue("courseImage", course.thumbnail);
         }
-
-        getCategories();
-    },[])
+    }, [course, editCourse, setValue]);
 
     const isFormUpdated = () => {
         const currentValues = getValues();
@@ -64,17 +65,17 @@ const CourseInformationForm = () => {
         };
 
         const categoryId = currentValues.courseCategory?._id || currentValues.courseCategory;
-        const currentCategoryId = course.category?._id || course.category;
+        const currentCategoryId = course?.category?._id || course?.category;
 
         if (
-            compareString(currentValues.courseTitle, course.courseName) ||
-            compareString(currentValues.courseShortDesc, course.courseDescription) ||
-            compareString(currentValues.coursePrice, course.price) ||
-            compareArray(currentValues.courseTags, course.tag) ||
-            compareString(currentValues.courseBenefits, course.whatYouWillLearn) ||
+            compareString(currentValues.courseTitle, course?.courseName) ||
+            compareString(currentValues.courseShortDesc, course?.courseDescription) ||
+            compareString(currentValues.coursePrice, course?.price) ||
+            compareArray(currentValues.courseTags, course?.tag) ||
+            compareString(currentValues.courseBenefits, course?.whatYouWillLearn) ||
             compareString(categoryId, currentCategoryId) ||
-            compareString(currentValues.courseImage, course.thumbnail) ||
-            compareArray(currentValues.courseRequirements, course.instructions)
+            compareString(currentValues.courseImage, course?.thumbnail) ||
+            compareArray(currentValues.courseRequirements, course?.instructions)
         ) {
             return true;
         }
@@ -88,6 +89,10 @@ const CourseInformationForm = () => {
         let result;
 
         if(editCourse) {
+            if (!course?._id) {
+                toast.error("Course details are not loaded yet");
+                return;
+            }
             if(isFormUpdated()) {
                 const currentValues = getValues();
                 formData = new FormData();
@@ -109,7 +114,7 @@ const CourseInformationForm = () => {
                     formData.append("whatYouWillLearn", data.courseBenefits);
                 }
 
-                if(currentValues.courseCategory._id !== course.category._id) {
+                if(currentValues.courseCategory?._id !== course?.category?._id) {
                     formData.append("category", data.courseCategory);
                 }
 

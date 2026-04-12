@@ -10,7 +10,6 @@ import RenderSteps from '../AddCourse/RenderSteps';
 
 const EditCourse = () => {
     const {token} = useSelector((state) => state.auth);
-    const {course} = useSelector((state) => state.course);
     const {courseId} = useParams();
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
@@ -22,14 +21,13 @@ const EditCourse = () => {
             const result = await getFullDetailsOfCourse(courseId, token);
             if(result?.courseDetails) {
                 dispatch(setCourse(result.courseDetails));
-                console.log("result",course);
                 dispatch(setEditCourse(true));
                 dispatch(setStep(1));
             }
             setLoading(false);
         }
         popualteCourse();
-    },[]);
+    },[courseId, dispatch, token]);
 
   return (
     <div className='mx-auto w-11/12 max-w-[1000px] py-10'>

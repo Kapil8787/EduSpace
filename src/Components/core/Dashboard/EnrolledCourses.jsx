@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import {getUserCourses as getUserEnrolledCourses}  from '../../../services/operations/profileAPI';
 import ProgressBar from '@ramonak/react-progress-bar';
@@ -16,7 +16,7 @@ const EnrolledCourses = () => {
     const navigate = useNavigate();
 
 
-    const getEnrolledCourses = async() => {
+    const getEnrolledCourses = useCallback(async() => {
         setLoading(true);
             const response = await getUserEnrolledCourses(token,dispatch);
             console.log("getEnrolledCourses -> response", response?.courseProgress);
@@ -24,7 +24,7 @@ const EnrolledCourses = () => {
             setEnrolledCourses(response?.courses);
             setProgressData(response?.courseProgress);
 
-    }
+    }, [dispatch, token])
 
     const totalNoOfLectures = (course) => {
         let total = 0;
@@ -36,7 +36,7 @@ const EnrolledCourses = () => {
 
     useEffect(()=> {
         getEnrolledCourses();
-    },[]);
+    },[getEnrolledCourses]);
 
     if(Loading) {
         return (
@@ -70,7 +70,7 @@ const EnrolledCourses = () => {
                                 navigate(`view-course/${course._id}/section/${course.courseContent[0]._id}/sub-section/${course.courseContent[0].subSection[0]}`)}}
                                  className='flex items-center border border-richblack-700 rounded-none'>
                                 <div className='flex w-[45%] cursor-pointer items-center gap-4 px-5 py-3'>
-                                    <img className='h-14 w-14 rounded-lg object-cover'  src={course.thumbnail}/>
+                                    <img className='h-14 w-14 rounded-lg object-cover'  src={course.thumbnail} alt={course?.courseName || "Enrolled course"} />
                                     <div className='flex max-w-xs flex-col gap-2'>
                                         <p className='font-semibold'>{course.courseName}</p>
                                         <p className='text-xs text-richblack-300 hidden md:block'>{

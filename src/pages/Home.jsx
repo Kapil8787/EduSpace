@@ -111,6 +111,9 @@ useEffect(() => {
             <div className=' mt-4 w-[90%] text-left md:text-center text-sm md:text-lg font-bold text-richblack-300'>
             With our online coding courses, you can learn at your own pace, from anywhere in the world, and get access to a wealth of resources, including hands-on projects, quizzes, and personalized feedback from instructors. 
             </div>
+            {error && (
+              <p className='mt-3 text-sm text-pink-200'>{error}</p>
+            )}
 
             <div className='flex flex-row gap-7 mt-8'>
                 <CTAButton active={true} linkto={"/signup"}>
@@ -167,13 +170,21 @@ useEffect(() => {
         <h2 className='section_heading mb-6 md:text-3xl text-xl'>
            Most Popular Courses
         </h2>
-        <CourseSlider Courses={CatalogPageData?.selectedCourses}/>
+        {loading && !CatalogPageData ? (
+          <p className='text-richblack-300'>Loading courses...</p>
+        ) : (
+          <CourseSlider Courses={CatalogPageData?.selectedCourses}/>
+        )}
       </div>       
         <div className=' mx-auto box-content w-full max-w-maxContentTab px- py-12 lg:max-w-maxContent'>
         <h2 className='section_heading mb-6 md:text-3xl text-xl'>
            Students are learning
         </h2>
-        <CourseSlider Courses={CatalogPageData?.differentCourses}/>
+        {loading && !CatalogPageData ? (
+          <p className='text-richblack-300'>Loading courses...</p>
+        ) : (
+          <CourseSlider Courses={CatalogPageData?.differentCourses}/>
+        )}
       </div>       
 
 

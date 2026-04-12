@@ -5,8 +5,6 @@ import "swiper/css/free-mode";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Autoplay, Mousewheel, Keyboard } from "swiper";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
 import { useEffect, useState } from "react";
 import { ratingsEndpoints } from "../../../services/apis";
 import { apiConnector } from "../../../services/apiConnector";
@@ -14,11 +12,9 @@ import RatingStars from "../../common/RatingStars";
 
 const RatingSlider = () => {
   const [Reviews, setReviews] = useState([]);
-  const [Loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getReviews = async () => {
-      setLoading(true);
       try {
         const res = await apiConnector(
           "GET",
@@ -28,8 +24,6 @@ const RatingSlider = () => {
         console.log("LOGGING REVIEWS", res);
       } catch (error) {
         console.log("LOGGING Review ERROR", error);
-      } finally {
-        setLoading(false);
       }
     };
     getReviews();

@@ -45,7 +45,7 @@ const CourseDetails = () => {
             setCourseDetail(response);
         }
         getCourseDetails();
-    }, [courseId]);
+    }, [courseId, dispatch]);
 
     useEffect(() => {
         if(courseDetail?.ratingAndReviews?.length > 0){

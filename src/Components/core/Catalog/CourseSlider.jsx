@@ -5,14 +5,13 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import "swiper/css/pagination"
 import "swiper/css/navigation";
-import { Autoplay,FreeMode,Navigation, Pagination,Mousewheel, Keyboard}  from 'swiper'
+import { FreeMode,Navigation, Pagination,Mousewheel, Keyboard}  from 'swiper'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import "react-loading-skeleton/dist/skeleton.css";
 
 import CatalogCard from './CatalogCard'
 
 const CourseSlider = ({Courses}) => {
-  const isLoading = Courses === undefined || Courses === null
   const hasCourses = Array.isArray(Courses) && Courses.length > 0
     
   return (
@@ -72,7 +71,7 @@ const CourseSlider = ({Courses}) => {
                     {/* <div className='swiper-button-next'></div> */}
                     {/* <div className='swiper-button-prev'></div> */}
                 </Swiper>
-            ) : isLoading ? (
+            ) : (
                 <div className='flex gap-4 overflow-hidden'>
                 <SkeletonTheme baseColor="#2C333F" highlightColor="#161D29">
                 <div className=''>
@@ -99,8 +98,6 @@ const CourseSlider = ({Courses}) => {
                 </div>
               </SkeletonTheme>
                 </div>
-            ) : (
-                <p className='text-richblack-200'>No courses available right now.</p>
             )
 
         }

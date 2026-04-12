@@ -18,7 +18,7 @@ const RenderCartCourses = () => {
             <div key={index} className='flex w-full flex-wrap items-start justify-between gap-6 border-b border-b-richblack-400 pb-6 false pt-6'>
                 <div className='flex flex-1 flex-col gap-4 xl:flex-row'>
                     <Link to={`/courses/${course._id}`}>
-                    <img className='md:h-[148px] md:w-[220px] h-[100px] w-[180px] rounded-lg object-cover' src={course?.thumbnail} />
+                    <img className='md:h-[148px] md:w-[220px] h-[100px] w-[180px] rounded-lg object-cover' src={course?.thumbnail} alt={course?.courseName || "Course thumbnail"} />
                     </Link>
                     <div className='flex flex-col space-y-1'>
                         <Link to={`/courses/${course._id}`}>

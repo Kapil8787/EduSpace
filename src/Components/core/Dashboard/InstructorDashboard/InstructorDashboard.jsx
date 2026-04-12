@@ -28,7 +28,7 @@ const InstructorDashboard = () => {
             console.log("courses",instructorCourses);
             setDetails(instructorDetails);
         })();
-    }, [])
+    }, [dispatch, token])
 
     const totalEarnings = details?.reduce((acc, course) => {
         return acc + course?.totalRevenue;

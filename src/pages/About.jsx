@@ -8,7 +8,6 @@ import FoundingStory from "../assets/Images/FoundingStory.png"
 import StatsComponent from '../Components/core/AboutPage/Stats'
 import LearningGrid from '../Components/core/AboutPage/LearningGrid'
 import ContactFormSection from '../Components/core/AboutPage/ContactFormSection'
-import Footer from '../Components/common/Footer'
 import RatingSlider from '../Components/core/Ratings/RatingSlider';
 
 const About = () => {
@@ -24,9 +23,9 @@ const About = () => {
             </header>
             <div className='sm:h-[70px] lg:h-[150px]'></div>
             <div className='absolute bottom-0 left-[50%] grid w-[100%] translate-x-[-50%] translate-y-[30%] grid-cols-3 gap-3 lg:gap-5'>
-                <img src={BannerImage1} />
-                <img src={BannerImage2} />
-                <img src={BannerImage3} />
+                <img src={BannerImage1} alt="Students learning together" />
+                <img src={BannerImage2} alt="Online class collaboration" />
+                <img src={BannerImage3} alt="Focused learning session" />
             </div>
         </div>
       </section>
@@ -57,7 +56,7 @@ const About = () => {
                 </div>
                 {/* foudning story right box */}
                 <div>
-                    <img className='shadow-[0_0_20px_0] shadow-[#FC6767]'  src={FoundingStory} />
+                    <img className='shadow-[0_0_20px_0] shadow-[#FC6767]'  src={FoundingStory} alt="Founding story illustration" />
                 </div>
             </div>
 
