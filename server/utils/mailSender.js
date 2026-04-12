@@ -25,9 +25,6 @@ const getPrimaryConfig = () => {
         // Render often fails on IPv6 routes to Gmail SMTP. Prefer IPv4 unless overridden.
         family: resolvedFamily,
         auth: { user, pass },
-        connectionTimeout: Number(process.env.MAIL_CONNECTION_TIMEOUT || 30000),
-        greetingTimeout: Number(process.env.MAIL_GREETING_TIMEOUT || 30000),
-        socketTimeout: Number(process.env.MAIL_SOCKET_TIMEOUT || 30000),
         tls: {
             servername: host,
         },

@@ -18,6 +18,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
+database.connect();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -135,26 +136,6 @@ app.get("/", (req, res) => {
   });
 });
 
-const startServer = async () => {
-  try {
-    const dbConnectTimeoutMs = Number(process.env.DB_CONNECT_TIMEOUT_MS || 15000);
-    await Promise.race([
-      database.connect(),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`Database connection timed out after ${dbConnectTimeoutMs}ms`)),
-          dbConnectTimeoutMs
-        )
-      ),
-    ]);
-
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Server startup failed due to database connection error:", error.message);
-    process.exit(1);
-  }
-};
-
-startServer();
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
