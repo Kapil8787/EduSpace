@@ -15,15 +15,44 @@ const {
   RESETPASSWORD_API,
 } = endpoints
 
+const OTP_REQUEST_TIMEOUT_MS = Number(process.env.REACT_APP_OTP_TIMEOUT_MS || 70000)
+
 export function sendOtp(email, navigate) {
   return async (dispatch) => {
     // const toastId = toast.loading("Loading...")
     dispatch(setLoading(true))
     try {
-      const response = await apiConnector("POST", SENDOTP_API, {
-        email,
-        checkUserPresent: true,
-      })
+      let response
+      let attempt = 0
+
+      while (attempt < 2) {
+        try {
+          response = await apiConnector(
+            "POST",
+            SENDOTP_API,
+            {
+              email,
+              checkUserPresent: true,
+            },
+            null,
+            null,
+            null,
+            { timeout: OTP_REQUEST_TIMEOUT_MS }
+          )
+          break
+        } catch (requestError) {
+          attempt += 1
+          const isTimeoutError = requestError?.code === "ECONNABORTED"
+
+          if (attempt < 2 && isTimeoutError) {
+            console.log("SENDOTP timeout on first attempt, retrying once...")
+            continue
+          }
+
+          throw requestError
+        }
+      }
+
       dispatch(setProgress(100));
       console.log("SENDOTP API RESPONSE............", response)
 
@@ -35,12 +64,19 @@ export function sendOtp(email, navigate) {
 
       toast.success("OTP Sent Successfully")
       navigate("/verify-email")
+      return true
     } catch (error) {
       console.log("SENDOTP API ERROR............", error)
-      toast.error(error?.response?.data?.message)
+      if (error?.code === "ECONNABORTED") {
+        toast.error("Request timed out after retry. Please try again in a moment.")
+      } else {
+        toast.error(error?.response?.data?.message || "Unable to send OTP. Please try again.")
+      }
       dispatch(setProgress(100));
+      return false
+    } finally {
+      dispatch(setLoading(false))
     }
-    dispatch(setLoading(false))
     // toast.dismiss(toastId)
   }
 }
@@ -86,7 +122,7 @@ export function signUp(
     } catch (error) {
       dispatch(setProgress(100));
       console.log("SIGNUP API ERROR............", error)
-      toast.error("Signup Failed")
+      toast.error(error?.response?.data?.message || "Signup Failed")
       navigate("/signup")
     }
     dispatch(setLoading(false))

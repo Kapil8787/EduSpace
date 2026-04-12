@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const mailSender = require("../utils/mailSender");
-const emailTemplate = require("../mail/templates/emailVerificationTemplate");
 const OTPSchema = new mongoose.Schema({
 	email: {
 		type: String,
@@ -17,6 +15,7 @@ const OTPSchema = new mongoose.Schema({
 	},
 });
 
+<<<<<<< HEAD
 // Define a function to send emails
 async function sendVerificationEmail(email, otp) {
 	// Create a transporter to send emails
@@ -54,6 +53,9 @@ OTPSchema.pre("save", async function (next) {
 	}
 	next();
 });
+=======
+OTPSchema.index({ email: 1, createdAt: -1 });
+>>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 
 const OTP = mongoose.model("OTP", OTPSchema);
 

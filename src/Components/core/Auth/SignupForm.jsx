@@ -42,7 +42,7 @@ function SignupForm() {
   }
 
   // Handle Form Submission
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault()
 
     if (password !== confirmPassword) {
@@ -70,20 +70,22 @@ function SignupForm() {
     // To be used after otp verification
     dispatch(setSignupData(signupData))
     // Send OTP to user for verification
-    dispatch(sendOtp(formData.email, navigate))
+    const otpSent = await dispatch(sendOtp(formData.email, navigate))
 
-    // Reset
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      instituteName: "",
-      linkedin: "",
-      experience: "",
-    })
-    setAccountType(ACCOUNT_TYPE.STUDENT)
+    if (otpSent) {
+      // Reset after successful OTP request
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        instituteName: "",
+        linkedin: "",
+        experience: "",
+      })
+      setAccountType(ACCOUNT_TYPE.STUDENT)
+    }
   }
 
   // data to pass to Tab component

@@ -4,6 +4,7 @@ const OTP = require("../models/OTP");
 const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
 const mailSender = require("../utils/mailSender");
+const emailVerificationTemplate = require("../mail/templates/emailVerificationTemplate");
 const { passwordUpdated } = require("../mail/templates/passwordUpdate");
 const Profile = require("../models/Profile");
 require("dotenv").config();
@@ -34,6 +35,7 @@ exports.signup = async (req, res) => {
 				message: "All required fields are required",
 			});
 		}
+		const normalizedEmail = email.trim().toLowerCase();
 
 		const normalizedAccountType = accountType.trim();
 		if (!["Student", "Instructor", "Admin"].includes(normalizedAccountType)) {
@@ -66,7 +68,7 @@ exports.signup = async (req, res) => {
 		}
 
 		// Check if user already exists
-		const existingUser = await User.findOne({ email });
+		const existingUser = await User.findOne({ email: normalizedEmail });
 		if (existingUser && existingUser.active) {
 			return res.status(400).json({
 				success: false,
@@ -81,8 +83,8 @@ exports.signup = async (req, res) => {
 		}
 
 		// Find the most recent OTP for the email
-		const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-		if (response.length === 0 || otp !== response[0].otp) {
+		const recentOtp = await OTP.findOne({ email: normalizedEmail }).sort({ createdAt: -1 });
+		if (!recentOtp || otp !== recentOtp.otp) {
 			return res.status(400).json({
 				success: false,
 				message: "The OTP is not valid",
@@ -108,7 +110,7 @@ exports.signup = async (req, res) => {
 		const user = await User.create({
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
-			email: email.trim().toLowerCase(),
+			email: normalizedEmail,
 			password: hashedPassword,
 			accountType: normalizedAccountType,
 			approved,
@@ -226,10 +228,17 @@ exports.login = async (req, res) => {
 exports.sendotp = async (req, res) => {
 	try {
 		const { email } = req.body;
+		if (!email) {
+			return res.status(400).json({
+				success: false,
+				message: "Email is required",
+			});
+		}
+
+		const normalizedEmail = email.trim().toLowerCase();
 
 		// Check if user is already present
-		// Find user with provided email
-		const checkUserPresent = await User.findOne({ email });
+		const checkUserPresent = await User.findOne({ email: normalizedEmail });
 		// If user exists but is soft-inactive (rejected), clear stale account and allow re-OTP
 		if (checkUserPresent && checkUserPresent.active === false) {
 			await Profile.findByIdAndDelete(checkUserPresent.additionalDetails);
@@ -239,42 +248,66 @@ exports.sendotp = async (req, res) => {
 		// to be used in case of signup
 		// If user found with provided email
 		if (checkUserPresent && checkUserPresent.active) {
-			// Return 401 Unauthorized status code with error message
 			return res.status(401).json({
 				success: false,
 				message: `User is Already Registered`,
 			});
 		}
 
+<<<<<<< HEAD
 				var otp = otpGenerator.generate(6, {
+=======
+		let otp = otpGenerator.generate(6, {
+>>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 			upperCaseAlphabets: false,
 			lowerCaseAlphabets: false,
 			specialChars: false,
 		});
+<<<<<<< HEAD
 		let result = await OTP.findOne({ otp: otp });
 		console.log("Result is Generate OTP Func");
 		console.log("OTP", otp);
 		console.log("Result", result);
+=======
+
+		let result = await OTP.findOne({ otp });
+>>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 		while (result) {
 			otp = otpGenerator.generate(6, {
 				upperCaseAlphabets: false,
 				lowerCaseAlphabets: false,
 				specialChars: false,
 			});
+<<<<<<< HEAD
 			result = await OTP.findOne({ otp: otp }); // ✅ FIX: Re-check the new OTP
+=======
+			result = await OTP.findOne({ otp });
 		}
-		const otpPayload = { email, otp };
-		const otpBody = await OTP.create(otpPayload);
-		console.log("OTP Body", otpBody);
+
+		const otpBody = await OTP.create({ email: normalizedEmail, otp });
+
+		try {
+			await mailSender(
+				normalizedEmail,
+				"EduSpace - Email Verification OTP",
+				emailVerificationTemplate(otp)
+			);
+		} catch (mailError) {
+			await OTP.findByIdAndDelete(otpBody._id);
+			throw new Error(`Unable to send OTP email. ${mailError.message || "Please try again."}`);
+>>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
+		}
 
 		res.status(200).json({
 			success: true,
 			message: `OTP Sent Successfully`,
-			otp,
 		});
 	} catch (error) {
 		console.log(error.message);
-		return res.status(500).json({ success: false, error: error.message });
+		return res.status(500).json({
+			success: false,
+			message: error.message || "Failed to send OTP",
+		});
 	}
 };
 
@@ -362,3 +395,4 @@ exports.changePassword = async (req, res) => {
 		});
 	}
 };
+
