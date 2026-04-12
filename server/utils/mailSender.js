@@ -2,6 +2,14 @@ const nodemailer = require("nodemailer");
 require('dotenv').config()
 
 const transporterCache = new Map();
+const toPositiveNumber = (value, fallback) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const MAIL_CONNECTION_TIMEOUT_MS = toPositiveNumber(process.env.MAIL_CONNECTION_TIMEOUT_MS, 10000);
+const MAIL_GREETING_TIMEOUT_MS = toPositiveNumber(process.env.MAIL_GREETING_TIMEOUT_MS, 10000);
+const MAIL_SOCKET_TIMEOUT_MS = toPositiveNumber(process.env.MAIL_SOCKET_TIMEOUT_MS, 10000);
 
 const getPrimaryConfig = () => {
     const host = process.env.MAIL_HOST?.trim();
@@ -24,6 +32,9 @@ const getPrimaryConfig = () => {
         secure,
         // Render often fails on IPv6 routes to Gmail SMTP. Prefer IPv4 unless overridden.
         family: resolvedFamily,
+        connectionTimeout: MAIL_CONNECTION_TIMEOUT_MS,
+        greetingTimeout: MAIL_GREETING_TIMEOUT_MS,
+        socketTimeout: MAIL_SOCKET_TIMEOUT_MS,
         auth: { user, pass },
         tls: {
             servername: host,
