@@ -280,7 +280,7 @@ exports.sendotp = async (req, res) => {
 			);
 		} catch (mailError) {
 			await OTP.findByIdAndDelete(otpBody._id);
-			throw new Error(`Unable to send OTP email. ${mailError.message}`);
+			throw new Error(`Unable to send OTP email. ${mailError.message || "Please try again."}`);
 		}
 
 		res.status(200).json({
