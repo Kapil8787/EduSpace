@@ -254,33 +254,19 @@ exports.sendotp = async (req, res) => {
 			});
 		}
 
-<<<<<<< HEAD
-				var otp = otpGenerator.generate(6, {
-=======
 		let otp = otpGenerator.generate(6, {
->>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 			upperCaseAlphabets: false,
 			lowerCaseAlphabets: false,
 			specialChars: false,
 		});
-<<<<<<< HEAD
-		let result = await OTP.findOne({ otp: otp });
-		console.log("Result is Generate OTP Func");
-		console.log("OTP", otp);
-		console.log("Result", result);
-=======
 
 		let result = await OTP.findOne({ otp });
->>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 		while (result) {
 			otp = otpGenerator.generate(6, {
 				upperCaseAlphabets: false,
 				lowerCaseAlphabets: false,
 				specialChars: false,
 			});
-<<<<<<< HEAD
-			result = await OTP.findOne({ otp: otp }); // ✅ FIX: Re-check the new OTP
-=======
 			result = await OTP.findOne({ otp });
 		}
 
@@ -295,7 +281,6 @@ exports.sendotp = async (req, res) => {
 		} catch (mailError) {
 			await OTP.findByIdAndDelete(otpBody._id);
 			throw new Error(`Unable to send OTP email. ${mailError.message || "Please try again."}`);
->>>>>>> 88cd6ece3d60c930fd69ce3625ca8630de825ead
 		}
 
 		res.status(200).json({
@@ -310,7 +295,6 @@ exports.sendotp = async (req, res) => {
 		});
 	}
 };
-
 
 
 
@@ -395,4 +379,5 @@ exports.changePassword = async (req, res) => {
 		});
 	}
 };
+
 
