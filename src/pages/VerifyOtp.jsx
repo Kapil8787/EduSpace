@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import OTPInput from 'react-otp-input'
 import { useSelector,useDispatch } from 'react-redux';
-import { signUp } from '../services/operations/authAPI';
+import { sendOtp, signUp } from '../services/operations/authAPI';
 import { useNavigate } from 'react-router-dom';
 
 const VerifyOtp = () => {
@@ -40,6 +40,11 @@ const VerifyOtp = () => {
         ));
     }
 
+    const handleResendOtp = () => {
+        if (!signupData?.email) return;
+        dispatch(sendOtp(signupData.email, navigate));
+    }
+
   return (
     loading?(<div className=" h-[100vh] flex justify-center items-center"><div className="custom-loader"></div></div>):(
     <div>
@@ -63,6 +68,13 @@ const VerifyOtp = () => {
                     />
                 <button type="submit" className="w-full bg-yellow-50 py-[12px] px-[12px] rounded-[8px] mt-6 font-medium text-richblack-900">Verify Email</button>
                 </form>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="mt-3 text-sm text-yellow-100 underline"
+                >
+                  Resend OTP
+                </button>
                 
 
         </div>

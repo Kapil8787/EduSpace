@@ -1,6 +1,10 @@
 import axios from "axios";
 
-export const axiosInstance = axios.create({});
+const REQUEST_TIMEOUT_MS = Number(process.env.REACT_APP_API_TIMEOUT_MS || 20000);
+
+export const axiosInstance = axios.create({
+    timeout: REQUEST_TIMEOUT_MS,
+});
 
 export const apiConnector = (method, url, bodyData, headers, params, onUploadProgress) => {
     const config = {
@@ -9,6 +13,7 @@ export const apiConnector = (method, url, bodyData, headers, params, onUploadPro
         data: bodyData ? bodyData : null,
         headers: headers ? headers : null,
         params: params ? params : null,
+        timeout: REQUEST_TIMEOUT_MS,
     };
 
     if (typeof onUploadProgress === "function") {

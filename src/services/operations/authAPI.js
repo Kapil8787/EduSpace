@@ -35,12 +35,19 @@ export function sendOtp(email, navigate) {
 
       toast.success("OTP Sent Successfully")
       navigate("/verify-email")
+      return true
     } catch (error) {
       console.log("SENDOTP API ERROR............", error)
-      toast.error(error?.response?.data?.message)
+      if (error?.code === "ECONNABORTED") {
+        toast.error("Request timed out. Please try again in a moment.")
+      } else {
+        toast.error(error?.response?.data?.message || "Unable to send OTP. Please try again.")
+      }
       dispatch(setProgress(100));
+      return false
+    } finally {
+      dispatch(setLoading(false))
     }
-    dispatch(setLoading(false))
     // toast.dismiss(toastId)
   }
 }
@@ -86,7 +93,7 @@ export function signUp(
     } catch (error) {
       dispatch(setProgress(100));
       console.log("SIGNUP API ERROR............", error)
-      toast.error("Signup Failed")
+      toast.error(error?.response?.data?.message || "Signup Failed")
       navigate("/signup")
     }
     dispatch(setLoading(false))
