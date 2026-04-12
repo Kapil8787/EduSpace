@@ -6,14 +6,24 @@ export const axiosInstance = axios.create({
     timeout: REQUEST_TIMEOUT_MS,
 });
 
-export const apiConnector = (method, url, bodyData, headers, params, onUploadProgress) => {
+export const apiConnector = (
+    method,
+    url,
+    bodyData,
+    headers,
+    params,
+    onUploadProgress,
+    requestOptions = {}
+) => {
+    const resolvedTimeout = Number(requestOptions.timeout ?? REQUEST_TIMEOUT_MS);
+
     const config = {
         method,
         url,
         data: bodyData ? bodyData : null,
         headers: headers ? headers : null,
         params: params ? params : null,
-        timeout: REQUEST_TIMEOUT_MS,
+        timeout: resolvedTimeout,
     };
 
     if (typeof onUploadProgress === "function") {
